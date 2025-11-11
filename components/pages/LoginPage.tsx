@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { supabase } from '../../supabaseClient';
-import type { User, LoginRole } from '../../types';
+import type { User, LoginRole, StudentLogin, Student, Teacher } from '../../types';
 
 interface LoginPageProps {
     role: LoginRole;
     onLoginSuccess: (user: User) => void;
     logoUrl: string;
+    studentLogins: StudentLogin[];
+    students: Student[];
+    teachers: Teacher[];
 }
 
 // Mock database for admin
@@ -17,7 +19,7 @@ const mockPasswords: Record<string, string> = {
     'admin': 'admin', // Admin password
 };
 
-const LoginPage: React.FC<LoginPageProps> = ({ role, onLoginSuccess, logoUrl }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ role, onLoginSuccess, logoUrl, studentLogins, students, teachers }) => {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -33,27 +35,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ role, onLoginSuccess, logoUrl }) 
         setError('');
 
         if (role === 'student') {
-            const { data: loginInfo, error: loginError } = await supabase
-                .from('student_logins')
-                .select('*')
-                .eq('student_id', id)
-                .single();
+            const loginInfo = studentLogins.find(sl => sl.studentId === id);
             
-            if (loginError || !loginInfo) {
+            if (!loginInfo) {
                 setError('আপনার আইডি বা পাসওয়ার্ড সঠিক নয়।');
                 return;
             }
 
             if (loginInfo.password === password) {
-                if (!loginInfo.is_active) {
+                if (!loginInfo.isActive) {
                     setError('আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।');
                     return;
                 }
-                const { data: studentInfo, error: studentError } = await supabase
-                    .from('students')
-                    .select('*')
-                    .eq('student_id', id)
-                    .single();
+                const studentInfo = students.find(s => s.studentId === id);
                 
                 if (studentInfo) {
                     const user: User = {
@@ -70,21 +64,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ role, onLoginSuccess, logoUrl }) 
             }
 
         } else if (role === 'teacher') {
-            const { data: teacherInfo, error: teacherError } = await supabase
-                .from('teachers')
-                .select('*')
-                .eq('login_id', id)
-                .single();
+            const teacherInfo = teachers.find(t => t.loginId === id);
             
-            if (teacherError || !teacherInfo) {
+            if (!teacherInfo) {
                 setError('আপনার আইডি বা পাসওয়ার্ড সঠিক নয়।');
                 return;
             }
             
-            const correctPassword = teacherInfo.password || teacherInfo.login_id; // Use login_id as fallback
+            const correctPassword = teacherInfo.password || teacherInfo.loginId; // Use login_id as fallback
             if (correctPassword === password) {
                  const user: User = {
-                    id: teacherInfo.login_id!,
+                    id: teacherInfo.loginId!,
                     name: teacherInfo.name,
                     role: 'teacher',
                 };

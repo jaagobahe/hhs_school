@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
 import type { Page, LoginRole, User, Notice, Teacher, GalleryImage, AdhocCommitteeMember, Class, OnlineAdmission, StudentStat, StaffMember, SscResult, Student, Group, Section, Subject, Result, StudentLogin, IDCardRequest, AdmissionSettings } from './types';
 import TopBar from './components/TopBar';
 import Header from './components/Header';
@@ -23,13 +22,13 @@ import StaffPage from './components/pages/StaffPage';
 import NoticesPage from './components/pages/NoticesPage';
 import StudentDashboardPage from './components/student/StudentDashboardPage';
 import TeacherDashboardPage from './components/teacher/TeacherDashboardPage';
-
-const defaultAdmissionSettings: AdmissionSettings = {
-    formEnabled: false,
-    startDate: '',
-    endDate: '',
-    unavailableMessage: 'ভর্তি কার্যক্রম সাময়িকভাবে বন্ধ আছে।',
-};
+import { 
+    mockNotices, mockTeachers, mockGalleryImages, mockSliderImages, 
+    mockAdhocCommitteeMembers, mockClasses, mockStaff, mockSscResults,
+    mockGenderData, mockIslamData, mockHinduData, mockOnlineAdmissions,
+    mockStudents, mockGroups, mockSections, mockSubjects, mockResults,
+    mockStudentLogins, mockIdCardRequests, mockAdmissionSettings
+} from './data';
 
 const App: React.FC = () => {
     // State for page navigation
@@ -67,73 +66,34 @@ const App: React.FC = () => {
     const [results, setResults] = useState<Result[]>([]);
     const [studentLogins, setStudentLogins] = useState<StudentLogin[]>([]);
     const [idCardRequests, setIdCardRequests] = useState<IDCardRequest[]>([]);
-    const [admissionSettings, setAdmissionSettings] = useState<AdmissionSettings>(defaultAdmissionSettings);
+    const [admissionSettings, setAdmissionSettings] = useState<AdmissionSettings>(mockAdmissionSettings);
 
 
-    // Fetch initial data from Supabase
+    // Fetch initial data from mock data file
     useEffect(() => {
-        async function fetchInitialData() {
-            try {
-                const [
-                    noticesRes, teachersRes, galleryImagesRes, sliderImagesRes,
-                    committeeRes, classesRes, staffRes, sscResultsRes,
-                    genderStatsRes, islamStatsRes, hinduStatsRes,
-                    admissionsRes, studentsRes, groupsRes, sectionsRes,
-                    subjectsRes, resultsRes, studentLoginsRes, idCardRequestsRes,
-                    admissionSettingsRes
-                ] = await Promise.all([
-                    supabase.from('notices').select('*').order('id', { ascending: false }),
-                    supabase.from('teachers').select('*').order('id'),
-                    supabase.from('gallery_images').select('*').order('id', { ascending: false }),
-                    supabase.from('slider_images').select('*').order('id'),
-                    supabase.from('adhoc_committee_members').select('*').order('id'),
-                    supabase.from('classes').select('*').order('numeric_name'),
-                    supabase.from('staff').select('*').order('id'),
-                    supabase.from('ssc_results').select('*').order('year', { ascending: false }),
-                    supabase.from('student_stats_gender').select('*'),
-                    supabase.from('student_stats_islam').select('*'),
-                    supabase.from('student_stats_hindu').select('*'),
-                    supabase.from('online_admissions').select('*').order('id', { ascending: false }),
-                    supabase.from('students').select('*').order('class_id').order('roll'),
-                    supabase.from('groups').select('*'),
-                    supabase.from('sections').select('*'),
-                    supabase.from('subjects').select('*'),
-                    supabase.from('results').select('*'),
-                    supabase.from('student_logins').select('*'),
-                    supabase.from('id_card_requests').select('*').order('id', { ascending: false }),
-                    supabase.from('admission_settings').select('*').single(),
-                ]);
-
-                if (noticesRes.error) throw noticesRes.error; setNotices(noticesRes.data || []);
-                if (teachersRes.error) throw teachersRes.error; setTeachers(teachersRes.data || []);
-                if (galleryImagesRes.error) throw galleryImagesRes.error; setGalleryImages(galleryImagesRes.data || []);
-                if (sliderImagesRes.error) throw sliderImagesRes.error; setSliderImages(sliderImagesRes.data || []);
-                if (committeeRes.error) throw committeeRes.error; setAdhocCommitteeMembers(committeeRes.data || []);
-                if (classesRes.error) throw classesRes.error; setClasses(classesRes.data || []);
-                if (staffRes.error) throw staffRes.error; setStaff(staffRes.data || []);
-                if (sscResultsRes.error) throw sscResultsRes.error; setSscResults(sscResultsRes.data || []);
-                if (genderStatsRes.error) throw genderStatsRes.error; setGenderData(genderStatsRes.data || []);
-                if (islamStatsRes.error) throw islamStatsRes.error; setIslamData(islamStatsRes.data || []);
-                if (hinduStatsRes.error) throw hinduStatsRes.error; setHinduData(hinduStatsRes.data || []);
-                if (admissionsRes.error) throw admissionsRes.error; setOnlineAdmissions(admissionsRes.data || []);
-                if (studentsRes.error) throw studentsRes.error; setStudents(studentsRes.data || []);
-                if (groupsRes.error) throw groupsRes.error; setGroups(groupsRes.data || []);
-                if (sectionsRes.error) throw sectionsRes.error; setSections(sectionsRes.data || []);
-                if (subjectsRes.error) throw subjectsRes.error; setSubjects(subjectsRes.data || []);
-                if (resultsRes.error) throw resultsRes.error; setResults(resultsRes.data || []);
-                if (studentLoginsRes.error) throw studentLoginsRes.error; setStudentLogins(studentLoginsRes.data || []);
-                if (idCardRequestsRes.error) throw idCardRequestsRes.error; setIdCardRequests(idCardRequestsRes.data || []);
-                if (admissionSettingsRes.error) throw admissionSettingsRes.error; setAdmissionSettings(admissionSettingsRes.data || defaultAdmissionSettings);
-
-            } catch (error) {
-                console.error("Error fetching initial data:", error);
-                alert('ডেটা লোড করতে একটি সমস্যা হয়েছে। অনুগ্রহ করে আপনার Supabase কানেকশন এবং টেবিলের নাম চেক করুন।');
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        fetchInitialData();
+        setLoading(true);
+        // Load mock data
+        setNotices(mockNotices);
+        setTeachers(mockTeachers);
+        setGalleryImages(mockGalleryImages);
+        setSliderImages(mockSliderImages);
+        setAdhocCommitteeMembers(mockAdhocCommitteeMembers);
+        setClasses(mockClasses);
+        setStaff(mockStaff);
+        setSscResults(mockSscResults);
+        setGenderData(mockGenderData);
+        setIslamData(mockIslamData);
+        setHinduData(mockHinduData);
+        setOnlineAdmissions(mockOnlineAdmissions);
+        setStudents(mockStudents);
+        setGroups(mockGroups);
+        setSections(mockSections);
+        setSubjects(mockSubjects);
+        setResults(mockResults);
+        setStudentLogins(mockStudentLogins);
+        setIdCardRequests(mockIdCardRequests);
+        setAdmissionSettings(mockAdmissionSettings);
+        setLoading(false);
     }, []);
 
     // Scroll to top on page change
@@ -191,7 +151,7 @@ const App: React.FC = () => {
             case 'login-selection':
                 return <LoginSelectionPage onLoginRequest={handleLoginRequest} />;
             case 'login':
-                return loginRole ? <LoginPage role={loginRole} onLoginSuccess={handleLoginSuccess} logoUrl={logoUrl} /> : <HomePage onNavigate={setCurrentPage} onTeacherDetailsClick={setSelectedTeacher} notices={notices} teachers={teachers} sliderImages={sliderImages}/>;
+                return loginRole ? <LoginPage role={loginRole} onLoginSuccess={handleLoginSuccess} logoUrl={logoUrl} studentLogins={studentLogins} students={students} teachers={teachers} /> : <HomePage onNavigate={setCurrentPage} onTeacherDetailsClick={setSelectedTeacher} notices={notices} teachers={teachers} sliderImages={sliderImages}/>;
             default:
                 return <HomePage onNavigate={setCurrentPage} onTeacherDetailsClick={setSelectedTeacher} notices={notices} teachers={teachers} sliderImages={sliderImages}/>;
         }

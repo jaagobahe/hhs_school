@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { supabase } from '../../supabaseClient';
 import type { Class, OnlineAdmission, AdmissionSettings } from '../../types';
 import IdentificationIcon from '../icons/IdentificationIcon';
 import CalendarIcon from '../icons/CalendarIcon';
@@ -109,47 +108,21 @@ const AdmissionPage: React.FC<AdmissionPageProps> = ({ classes, setOnlineAdmissi
         }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        const admissionDataForDb = {
+        const newAdmission: OnlineAdmission = {
+            id: Date.now(),
             status: 'pending',
-            student_name_bn: formData.studentNameBn,
-            student_name_en: formData.studentNameEn,
-            dob: formData.dob,
-            birth_cert_no: formData.birthCertNo,
-            gender: formData.gender,
-            religion: formData.religion,
-            admission_class_id: formData.admissionClassId,
-            father_name_bn: formData.fatherNameBn,
-            father_name_en: formData.fatherNameEn,
-            father_nid: formData.fatherNid,
-            father_phone: formData.fatherPhone,
-            mother_name_bn: formData.motherNameBn,
-            mother_name_en: formData.motherNameEn,
-            mother_nid: formData.motherNid,
-            mother_phone: formData.motherPhone,
-            present_address: formData.presentAddress,
-            permanent_address: formData.permanentAddress,
-            prev_school: formData.prevSchool || null,
-            prev_class: formData.prevClass || null,
-            prev_result: formData.prevResult || null,
+            ...formData,
+            prevSchool: formData.prevSchool || undefined,
+            prevClass: formData.prevClass || undefined,
+            prevResult: formData.prevResult || undefined,
         };
         
-        const { data, error } = await supabase
-            .from('online_admissions')
-            .insert([admissionDataForDb])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error submitting admission:', error);
-            alert('আপনার আবেদন জমা দিতে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
-        } else if (data) {
-            setOnlineAdmissions(prev => [data, ...prev]);
-            alert('আপনার ভর্তি আবেদন সফলভাবে জমা হয়েছে। বিদ্যালয় কর্তৃপক্ষ শীঘ্রই আপনার সাথে যোগাযোগ করবে।');
-            setFormData(initialFormData); // Reset form
-        }
+        setOnlineAdmissions(prev => [newAdmission, ...prev]);
+        alert('আপনার ভর্তি আবেদন সফলভাবে জমা হয়েছে। বিদ্যালয় কর্তৃপক্ষ শীঘ্রই আপনার সাথে যোগাযোগ করবে।');
+        setFormData(initialFormData); // Reset form
     };
 
     return (

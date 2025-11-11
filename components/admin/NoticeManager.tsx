@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
 import type { Notice } from '../../types';
 import PencilIcon from '../icons/PencilIcon';
 import TrashIcon from '../icons/TrashIcon';
@@ -28,61 +27,26 @@ const NoticeManager: React.FC<NoticeManagerProps> = ({ notices, setNotices }) =>
         setIsModalOpen(true);
     };
     
-    const confirmDelete = async () => {
+    const confirmDelete = () => {
         if (noticeToDelete) {
-            const { error } = await supabase.from('notices').delete().eq('id', noticeToDelete.id);
-            if (error) {
-                console.error('Error deleting notice:', error);
-                alert('নোটিশটি মুছে ফেলতে সমস্যা হয়েছে।');
-            } else {
-                setNotices(notices.filter(n => n.id !== noticeToDelete.id));
-            }
+            setNotices(notices.filter(n => n.id !== noticeToDelete.id));
             setNoticeToDelete(null);
         }
     };
 
-    const handleSave = async (noticeData: Omit<Notice, 'id'>) => {
+    const handleSave = (noticeData: Omit<Notice, 'id'>) => {
         if (editingNotice) {
-            const { data, error } = await supabase
-                .from('notices')
-                .update({
-                    date: noticeData.date,
-                    title: noticeData.title,
-                    details: noticeData.details,
-                    is_urgent: noticeData.isUrgent,
-                    file_url: noticeData.fileUrl,
-                    file_name: noticeData.fileName,
-                })
-                .eq('id', editingNotice.id)
-                .select()
-                .single();
-
-            if (error) {
-                console.error('Error updating notice:', error);
-                alert('নোটিশটি আপডেট করতে সমস্যা হয়েছে।');
-            } else if (data) {
-                setNotices(notices.map(n => (n.id === data.id ? data : n)));
-            }
+            const updatedNotice: Notice = {
+                ...editingNotice,
+                ...noticeData,
+            };
+            setNotices(notices.map(n => (n.id === updatedNotice.id ? updatedNotice : n)));
         } else {
-            const { data, error } = await supabase
-                .from('notices')
-                .insert([{
-                    date: noticeData.date,
-                    title: noticeData.title,
-                    details: noticeData.details,
-                    is_urgent: noticeData.isUrgent,
-                    file_url: noticeData.fileUrl,
-                    file_name: noticeData.fileName,
-                }])
-                .select()
-                .single();
-            
-            if (error) {
-                console.error('Error creating notice:', error);
-                alert('নতুন নোটিশ তৈরি করতে সমস্যা হয়েছে।');
-            } else if (data) {
-                setNotices([data, ...notices]);
-            }
+            const newNotice: Notice = {
+                id: Date.now(),
+                ...noticeData,
+            };
+            setNotices([newNotice, ...notices]);
         }
         setIsModalOpen(false);
     };
