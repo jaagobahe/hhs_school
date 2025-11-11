@@ -137,10 +137,10 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
         }
 
         // FIX: Explicitly type `mark` to `MarkInput` to resolve type inference issue. The `mark` parameter was being inferred as `unknown`.
-        const marksArray: Mark[] = Array.from(marks.entries()).map(([subjectId, mark]) => ({
+        const marksArray: Mark[] = Array.from(marks.entries()).map(([subjectId, mark]: [number, MarkInput]) => ({
             subjectId,
-            cq: (mark as MarkInput).cq,
-            mcq: (mark as MarkInput).mcq,
+            cq: mark.cq,
+            mcq: mark.mcq,
         }));
 
         const resultData: Result = {
