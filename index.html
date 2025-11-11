@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>হরিপুর উচ্চ বিদ্যালয়</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'hind-siliguri': ['"Hind Siliguri"', 'sans-serif'],
+              'tiro-bangla': ['"Tiro Bangla"', 'serif'],
+            },
+            colors: {
+              'brand-primary': '#0D47A1', // A deep blue
+              'brand-secondary': '#1976D2', // A lighter blue
+              'brand-accent': '#FFC107', // An accent color (amber)
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: 'Hind Siliguri', sans-serif;
+      }
+      .font-tiro-bangla {
+        font-family: 'Tiro Bangla', serif;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-page-fade-in {
+        animation: fadeIn 0.6s ease-out;
+      }
+
+      @keyframes scroll-horizontal {
+        from {
+          transform: translateX(0%);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .animate-scroll-horizontal {
+        animation: scroll-horizontal 80s linear infinite;
+      }
+      .animate-scroll-horizontal:hover {
+        animation-play-state: paused;
+      }
+
+      /* Image Slider Styles */
+      .slide {
+        opacity: 0;
+        transform: scale(1.05);
+        transition: opacity 1.2s ease-in-out, transform 1.2s ease-in-out;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+      }
+      .slide.active {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .slider-arrow {
+        transition: background-color 0.3s ease;
+      }
+      .slider-arrow:hover {
+        background-color: rgba(0, 0, 0, 0.6);
+      }
+      .slider-dots .dot {
+         transition: background-color 0.3s ease, transform 0.3s ease;
+      }
+      .slider-dots .dot:hover {
+        transform: scale(1.2);
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+      }
+      .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 600px; /* Default max-width */
+        max-height: 90vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .modal-content.modal-lg {
+        max-width: 900px;
+      }
+      
+      /* Print Styles */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #printable-area, #printable-area *,
+        #id-card-printable-area, #id-card-printable-area *,
+        #admit-card-printable-grid, #admit-card-printable-grid *,
+        .print-this-card, .print-this-card *,
+        #printable-receipt, #printable-receipt * {
+          visibility: visible;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        #id-card-printable-area {
+            position: absolute;
+            left: 1cm;
+            top: 1cm;
+            right: 1cm;
+            display: grid !important;
+            grid-template-columns: repeat(3, 6cm) !important;
+            justify-content: space-between;
+            row-gap: 1.5cm !important;
+            width: auto;
+        }
+
+        #admit-card-printable-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important; /* 2x2 grid */
+            gap: 1cm !important;
+            position: absolute;
+            top: 0.5cm;
+            left: 0.5cm;
+            right: 0.5cm;
+            bottom: 0.5cm;
+            width: auto;
+            height: auto;
+        }
+
+        #admit-card-printable-grid .admit-card-item {
+            border: 1px dashed #999 !important;
+            box-shadow: none !important;
+            padding: 0.5cm !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .card-container {
+            width: 6cm !important;
+            height: 9.5cm !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            box-shadow: none !important;
+            border: 1px dashed #999 !important; /* Dotted line for cutting */
+        }
+
+        .print-this-card {
+            position: absolute;
+            left: 1cm;
+            top: 1cm;
+            transform: none; 
+            width: 8cm !important;
+            height: 12.7cm !important; 
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        #printable-receipt {
+          position: absolute;
+          left: 1cm;
+          top: 1cm;
+          right: 1cm;
+          width: auto;
+          margin: 0;
+          box-shadow: none;
+          border: none;
+        }
+        
+        /* Modal printing fix */
+        .modal-overlay {
+          position: absolute !important;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: auto;
+          min-height: 100%;
+          background-color: transparent !important;
+          display: block !important;
+          z-index: 9999 !important;
+        }
+        .modal-content {
+          width: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
+          box-shadow: none !important;
+          border: none !important;
+          border-radius: 0 !important;
+          overflow: visible !important;
+        }
+
+        .no-print {
+          display: none !important;
+        }
+      }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-100 text-gray-800">
+    <div id="root"></div>
+  </body>
+</html>
