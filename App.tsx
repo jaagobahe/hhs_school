@@ -29,6 +29,7 @@ import {
     mockStudents, mockGroups, mockSections, mockSubjects, mockResults,
     mockStudentLogins, mockIdCardRequests, mockAdmissionSettings
 } from './data';
+import { AppContext, AppContextType } from './components/AppContext';
 
 const App: React.FC = () => {
     // State for page navigation
@@ -123,6 +124,31 @@ const App: React.FC = () => {
         setLoggedInUser(null);
         setCurrentPage('home');
     };
+    
+    const contextValue: AppContextType = {
+        notices, setNotices,
+        teachers, setTeachers,
+        galleryImages, setGalleryImages,
+        sliderImages, setSliderImages,
+        adhocCommitteeMembers, setAdhocCommitteeMembers,
+        classes, setClasses,
+        staff, setStaff,
+        sscResults, setSscResults,
+        genderData, setGenderData,
+        islamData, setIslamData,
+        hinduData, setHinduData,
+        onlineAdmissions, setOnlineAdmissions,
+        students, setStudents,
+        groups, setGroups,
+        sections, setSections,
+        subjects, setSubjects,
+        results, setResults,
+        studentLogins, setStudentLogins,
+        idCardRequests, setIdCardRequests,
+        admissionSettings, setAdmissionSettings,
+        logoUrl, setLogoUrl,
+        setSelectedNotice
+    };
 
     const renderPage = () => {
         switch (currentPage) {
@@ -163,70 +189,31 @@ const App: React.FC = () => {
 
     if (currentPage === 'dashboard' && loggedInUser?.role === 'admin') {
         return (
-            <DashboardPage 
-                onLogout={handleLogout}
-                notices={notices} setNotices={setNotices}
-                galleryImages={galleryImages} setGalleryImages={setGalleryImages}
-                sliderImages={sliderImages} setSliderImages={setSliderImages}
-                adhocCommitteeMembers={adhocCommitteeMembers} setAdhocCommitteeMembers={setAdhocCommitteeMembers}
-                teachers={teachers} setTeachers={setTeachers}
-                staff={staff} setStaff={setStaff}
-                genderData={genderData} setGenderData={setGenderData}
-                islamData={islamData} setIslamData={setIslamData}
-                hinduData={hinduData} setHinduData={setHinduData}
-                sscResults={sscResults} setSscResults={setSscResults}
-                onlineAdmissions={onlineAdmissions} setOnlineAdmissions={setOnlineAdmissions}
-                students={students} setStudents={setStudents}
-                classes={classes} setClasses={setClasses}
-                groups={groups} setGroups={setGroups}
-                sections={sections} setSections={setSections}
-                subjects={subjects} setSubjects={setSubjects}
-                results={results} setResults={setResults}
-                studentLogins={studentLogins} setStudentLogins={setStudentLogins}
-                idCardRequests={idCardRequests} setIdCardRequests={setIdCardRequests}
-                admissionSettings={admissionSettings} setAdmissionSettings={setAdmissionSettings}
-                logoUrl={logoUrl} setLogoUrl={setLogoUrl}
-            />
+            <AppContext.Provider value={contextValue}>
+                <DashboardPage onLogout={handleLogout} />
+            </AppContext.Provider>
         );
     }
     
     if (currentPage === 'student-dashboard' && loggedInUser?.role === 'student') {
         return (
-            <StudentDashboardPage
-                loggedInUser={loggedInUser}
-                onLogout={handleLogout}
-                students={students}
-                setStudents={setStudents}
-                results={results}
-                subjects={subjects}
-                classes={classes}
-                sections={sections}
-                groups={groups}
-                idCardRequests={idCardRequests}
-                setIdCardRequests={setIdCardRequests}
-                notices={notices}
-                onNoticeClick={setSelectedNotice}
-            />
+             <AppContext.Provider value={contextValue}>
+                <StudentDashboardPage
+                    loggedInUser={loggedInUser}
+                    onLogout={handleLogout}
+                />
+            </AppContext.Provider>
         );
     }
 
     if (currentPage === 'teacher-dashboard' && loggedInUser?.role === 'teacher') {
         return (
-            <TeacherDashboardPage
-                loggedInUser={loggedInUser}
-                onLogout={handleLogout}
-                teachers={teachers}
-                setTeachers={setTeachers}
-                students={students}
-                classes={classes}
-                sections={sections}
-                groups={groups}
-                subjects={subjects}
-                notices={notices}
-                onNoticeClick={setSelectedNotice}
-                results={results}
-                setResults={setResults}
-            />
+            <AppContext.Provider value={contextValue}>
+                <TeacherDashboardPage
+                    loggedInUser={loggedInUser}
+                    onLogout={handleLogout}
+                />
+            </AppContext.Provider>
         );
     }
 

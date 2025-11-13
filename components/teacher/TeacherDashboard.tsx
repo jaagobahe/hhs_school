@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import type { User, Teacher, Student, Class, Section, Group, Subject, Notice, Result } from '../../types';
+import React, { useState, useMemo, useContext } from 'react';
+import type { User, Teacher } from '../../types';
+import { AppContext } from '../AppContext';
 
 import DashboardIcon from '../icons/DashboardIcon';
 import PersonIcon from '../icons/PersonIcon';
@@ -21,26 +22,16 @@ type TeacherPage = 'overview' | 'profile' | 'my-students' | 'my-routine' | 'sett
 interface TeacherDashboardProps {
     loggedInUser: User;
     onLogout: () => void;
-    teachers: Teacher[];
-    setTeachers: React.Dispatch<React.SetStateAction<Teacher[]>>;
-    students: Student[];
-    classes: Class[];
-    sections: Section[];
-    groups: Group[];
-    subjects: Subject[];
-    notices: Notice[];
-    onNoticeClick: (notice: Notice) => void;
-    results: Result[];
-    setResults: React.Dispatch<React.SetStateAction<Result[]>>;
 }
 
-const TeacherDashboard: React.FC<TeacherDashboardProps> = (props) => {
+const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ loggedInUser, onLogout }) => {
+    const context = useContext(AppContext);
     const [activePage, setActivePage] = useState<TeacherPage>('overview');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const teacherData = useMemo(() => {
-        return props.teachers.find(t => t.loginId === props.loggedInUser.id);
-    }, [props.teachers, props.loggedInUser.id]);
+        return context?.teachers.find(t => t.loginId === loggedInUser.id);
+    }, [context?.teachers, loggedInUser.id]);
 
     const pageTitles: Record<TeacherPage, string> = {
         overview: 'ড্যাশবোর্ড ওভারভিউ',
@@ -50,13 +41,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = (props) => {
         settings: 'পাসওয়ার্ড পরিবর্তন',
     };
 
-    if (!teacherData) {
+    if (!context || !teacherData) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-red-600">ত্রুটি</h2>
                     <p className="text-gray-600">আপনার শিক্ষকের তথ্য খুঁজে পাওয়া যায়নি।</p>
-                    <button onClick={props.onLogout} className="mt-4 px-4 py-2 bg-brand-primary text-white rounded-md">লগআউট</button>
+                    <button onClick={onLogout} className="mt-4 px-4 py-2 bg-brand-primary text-white rounded-md">লগআউট</button>
                 </div>
             </div>
         );
@@ -65,26 +56,26 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = (props) => {
     const renderContent = () => {
         switch (activePage) {
             case 'overview':
-                return <TeacherOverview teacher={teacherData} notices={props.notices} onNoticeClick={props.onNoticeClick} />;
+                return <TeacherOverview teacher={teacherData} notices={context.notices} onNoticeClick={context.setSelectedNotice} />;
             case 'profile':
-                return <TeacherProfileManager teacher={teacherData} setTeachers={props.setTeachers} />;
+                return <TeacherProfileManager teacher={teacherData} setTeachers={context.setTeachers} />;
             case 'my-students':
                 return <MyStudents 
                             teacher={teacherData} 
-                            students={props.students} 
-                            classes={props.classes} 
-                            sections={props.sections} 
-                            groups={props.groups} 
-                            subjects={props.subjects} 
-                            results={props.results} 
-                            setResults={props.setResults} 
+                            students={context.students} 
+                            classes={context.classes} 
+                            sections={context.sections} 
+                            groups={context.groups} 
+                            subjects={context.subjects} 
+                            results={context.results} 
+                            setResults={context.setResults} 
                         />;
             case 'my-routine':
-                 return <MyRoutine teacher={teacherData} classes={props.classes} sections={props.sections} groups={props.groups} subjects={props.subjects} />;
+                 return <MyRoutine teacher={teacherData} classes={context.classes} sections={context.sections} groups={context.groups} subjects={context.subjects} />;
             case 'settings':
-                return <TeacherSettingsManager teacher={teacherData} setTeachers={props.setTeachers} />;
+                return <TeacherSettingsManager teacher={teacherData} setTeachers={context.setTeachers} />;
             default:
-                return <TeacherOverview teacher={teacherData} notices={props.notices} onNoticeClick={props.onNoticeClick} />;
+                return <TeacherOverview teacher={teacherData} notices={context.notices} onNoticeClick={context.setSelectedNotice} />;
         }
     };
 
@@ -109,7 +100,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = (props) => {
                <SidebarItem icon={<CogIcon />} label="সেটিংস" page="settings" activePage={activePage} setActivePage={setActivePage} setIsSidebarOpen={setIsSidebarOpen} />
            </nav>
             <div className="px-2 py-4 border-t">
-               <button onClick={props.onLogout} className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+               <button onClick={onLogout} className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                    <LogoutIcon />
                    <span>লগআউট</span>
                </button>

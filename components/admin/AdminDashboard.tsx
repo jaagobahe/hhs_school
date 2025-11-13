@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import type { Notice, GalleryImage, AdhocCommitteeMember, Teacher, StaffMember, StudentStat, SscResult, OnlineAdmission, Student, Class, Group, Section, Subject, Result, StudentLogin, IDCardRequest, AdmissionSettings } from '../../types';
+import React, { useState, useContext } from 'react';
+import type { Student, AdmissionSettings } from '../../types';
+import { AppContext } from '../AppContext';
 
 import DashboardIcon from '../icons/DashboardIcon';
 import NewspaperIcon from '../icons/NewspaperIcon';
@@ -16,6 +17,7 @@ import XIcon from '../icons/XIcon';
 import CardIcon from '../icons/CardIcon';
 import SmsIcon from '../icons/SmsIcon';
 import DocumentTextIcon from '../icons/DocumentTextIcon';
+import WalletIcon from '../icons/WalletIcon';
 
 import DashboardOverview from './DashboardOverview';
 import NoticeManager from './NoticeManager';
@@ -46,6 +48,7 @@ import TestimonialTeacher from './documents/TestimonialTeacher';
 import TransferCertificate from './documents/TransferCertificate';
 import RecommendationLetter from './documents/RecommendationLetter';
 import AdmitCard from './documents/AdmitCard';
+import PaymentSettingsManager from './PaymentSettingsManager';
 
 
 // New component for admin settings
@@ -202,61 +205,31 @@ type AdminPage =
     | 'testimonial-teacher'
     | 'transfer-certificate'
     | 'recommendation-letter'
-    | 'admit-card';
+    | 'admit-card'
+    | 'payment-settings';
 
 
 interface AdminDashboardProps {
     onLogout: () => void;
-    notices: Notice[];
-    setNotices: React.Dispatch<React.SetStateAction<Notice[]>>;
-    galleryImages: GalleryImage[];
-    setGalleryImages: React.Dispatch<React.SetStateAction<GalleryImage[]>>;
-    sliderImages: GalleryImage[];
-    setSliderImages: React.Dispatch<React.SetStateAction<GalleryImage[]>>;
-    adhocCommitteeMembers: AdhocCommitteeMember[];
-    setAdhocCommitteeMembers: React.Dispatch<React.SetStateAction<AdhocCommitteeMember[]>>;
-    teachers: Teacher[];
-    setTeachers: React.Dispatch<React.SetStateAction<Teacher[]>>;
-    staff: StaffMember[];
-    setStaff: React.Dispatch<React.SetStateAction<StaffMember[]>>;
-    genderData: StudentStat[];
-    setGenderData: React.Dispatch<React.SetStateAction<StudentStat[]>>;
-    islamData: StudentStat[];
-    setIslamData: React.Dispatch<React.SetStateAction<StudentStat[]>>;
-    hinduData: StudentStat[];
-    setHinduData: React.Dispatch<React.SetStateAction<StudentStat[]>>;
-    sscResults: SscResult[];
-    setSscResults: React.Dispatch<React.SetStateAction<SscResult[]>>;
-    onlineAdmissions: OnlineAdmission[];
-    setOnlineAdmissions: React.Dispatch<React.SetStateAction<OnlineAdmission[]>>;
-    students: Student[];
-    setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
-    classes: Class[];
-    setClasses: React.Dispatch<React.SetStateAction<Class[]>>;
-    groups: Group[];
-    setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
-    sections: Section[];
-    setSections: React.Dispatch<React.SetStateAction<Section[]>>;
-    subjects: Subject[];
-    setSubjects: React.Dispatch<React.SetStateAction<Subject[]>>;
-    results: Result[];
-    setResults: React.Dispatch<React.SetStateAction<Result[]>>;
-    studentLogins: StudentLogin[];
-    setStudentLogins: React.Dispatch<React.SetStateAction<StudentLogin[]>>;
-    idCardRequests: IDCardRequest[];
-    setIdCardRequests: React.Dispatch<React.SetStateAction<IDCardRequest[]>>;
-    admissionSettings: AdmissionSettings;
-    setAdmissionSettings: React.Dispatch<React.SetStateAction<AdmissionSettings>>;
-    logoUrl: string;
-    setLogoUrl: React.Dispatch<React.SetStateAction<string>>;
 }
 
 
-const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
+    const context = useContext(AppContext);
     const [activePage, setActivePage] = useState<AdminPage>('overview');
     const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [openDropdowns, setOpenDropdowns] = useState<string[]>([]);
+    
+    // Fix: Add initial state for payment settings from context if available, or a default structure.
+    const [paymentSettings, setPaymentSettings] = useState(context?.paymentSettings || {
+        admissionFee: 250,
+        bKash: { enabled: true, sandboxMode: true, merchantNumber: "017xxxxxxxx", username: null, appKey: null, appSecret: null, password: null }
+    });
+
+    if (!context) {
+        return <div className="flex justify-center items-center h-screen">Loading context...</div>;
+    }
     
     const pageTitles: Record<AdminPage, string> = {
         overview: 'ওভারভিউ',
@@ -289,6 +262,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         'transfer-certificate': 'ছাড়পত্র',
         'recommendation-letter': 'প্রশংসা পত্র',
         'admit-card': 'প্রবেশ পত্র',
+        'payment-settings': 'পেমেন্ট গেটওয়ে',
     };
 
     const toggleDropdown = (label: string) => {
@@ -304,9 +278,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     
     const handleSaveStudent = (student: Student) => {
         if(studentToEdit) {
-            props.setStudents(props.students.map(s => s.id === student.id ? student : s));
+            context.setStudents(context.students.map(s => s.id === student.id ? student : s));
         } else {
-            props.setStudents([student, ...props.students]);
+            context.setStudents([student, ...context.students]);
         }
         setStudentToEdit(null);
         setActivePage('all-students');
@@ -320,35 +294,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const renderContent = () => {
         switch (activePage) {
             case 'overview': return <DashboardOverview />;
-            case 'notices': return <NoticeManager notices={props.notices} setNotices={props.setNotices} />;
-            case 'gallery': return <GalleryManager galleryImages={props.galleryImages} setGalleryImages={props.setGalleryImages} />;
-            case 'slider': return <SliderManager sliderImages={props.sliderImages} setSliderImages={props.setSliderImages} />;
-            case 'committee': return <CommitteeManager committeeMembers={props.adhocCommitteeMembers} setCommitteeMembers={props.setAdhocCommitteeMembers} />;
-            case 'teachers': return <TeacherManager teachers={props.teachers} setTeachers={props.setTeachers} classes={props.classes} sections={props.sections} groups={props.groups} subjects={props.subjects} />;
-            case 'staff': return <StaffManager staff={props.staff} setStaff={props.setStaff} />;
-            case 'student-stats': return <StudentStatsManager genderData={props.genderData} setGenderData={props.setGenderData} islamData={props.islamData} setIslamData={props.setIslamData} hinduData={props.hinduData} setHinduData={props.setHinduData} />;
-            case 'results-ssc': return <ResultsManager sscResults={props.sscResults} setSscResults={props.setSscResults} />;
-            case 'online-admissions': return <OnlineAdmissionManager admissions={props.onlineAdmissions} setAdmissions={props.setOnlineAdmissions} students={props.students} setStudents={props.setStudents} classes={props.classes} groups={props.groups} sections={props.sections} studentLogins={props.studentLogins} setStudentLogins={props.setStudentLogins} />;
-            case 'new-student': return <NewStudentManager onSave={handleSaveStudent} onCancel={handleCancelStudentForm} studentToEdit={studentToEdit} classes={props.classes} groups={props.groups} sections={props.sections} students={props.students} setStudentLogins={props.setStudentLogins} />;
-            case 'all-students': return <AllStudentsManager students={props.students} setStudents={props.setStudents} onEditStudent={handleEditStudent} classes={props.classes} groups={props.groups} sections={props.sections} setStudentLogins={props.setStudentLogins} />;
-            case 'classes': return <ClassManager classes={props.classes} setClasses={props.setClasses} />;
-            case 'sections': return <SectionManager sections={props.sections} setSections={props.setSections} />;
-            case 'groups': return <GroupManager groups={props.groups} setGroups={props.setGroups} />;
-            case 'subjects': return <SubjectManager subjects={props.subjects} setSubjects={props.setSubjects} classes={props.classes} groups={props.groups} />;
-            case 'result-entry': return <ResultEntryManager students={props.students} subjects={props.subjects} classes={props.classes} sections={props.sections} groups={props.groups} results={props.results} setResults={props.setResults} />;
-            case 'student-id-card': return <IDCardManager students={props.students} classes={props.classes} sections={props.sections} groups={props.groups} idCardRequests={props.idCardRequests} setIdCardRequests={props.setIdCardRequests} />;
-            case 'staff-id-card': return <StaffIdCardManager teachers={props.teachers} staff={props.staff} />;
-            case 'settings': return <SiteSettingsManager logoUrl={props.logoUrl} setLogoUrl={props.setLogoUrl} />;
+            case 'notices': return <NoticeManager notices={context.notices} setNotices={context.setNotices} />;
+            case 'gallery': return <GalleryManager galleryImages={context.galleryImages} setGalleryImages={context.setGalleryImages} />;
+            case 'slider': return <SliderManager sliderImages={context.sliderImages} setSliderImages={context.setSliderImages} />;
+            case 'committee': return <CommitteeManager committeeMembers={context.adhocCommitteeMembers} setCommitteeMembers={context.setAdhocCommitteeMembers} />;
+            case 'teachers': return <TeacherManager teachers={context.teachers} setTeachers={context.setTeachers} classes={context.classes} sections={context.sections} groups={context.groups} subjects={context.subjects} />;
+            case 'staff': return <StaffManager staff={context.staff} setStaff={context.setStaff} />;
+            case 'student-stats': return <StudentStatsManager genderData={context.genderData} setGenderData={context.setGenderData} islamData={context.islamData} setIslamData={context.setIslamData} hinduData={context.hinduData} setHinduData={context.setHinduData} />;
+            case 'results-ssc': return <ResultsManager sscResults={context.sscResults} setSscResults={context.setSscResults} />;
+            case 'online-admissions': return <OnlineAdmissionManager admissions={context.onlineAdmissions} setAdmissions={context.setOnlineAdmissions} students={context.students} setStudents={context.setStudents} classes={context.classes} groups={context.groups} sections={context.sections} studentLogins={context.studentLogins} setStudentLogins={context.setStudentLogins} />;
+            case 'new-student': return <NewStudentManager onSave={handleSaveStudent} onCancel={handleCancelStudentForm} studentToEdit={studentToEdit} classes={context.classes} groups={context.groups} sections={context.sections} students={context.students} setStudentLogins={context.setStudentLogins} />;
+            case 'all-students': return <AllStudentsManager students={context.students} setStudents={context.setStudents} onEditStudent={handleEditStudent} classes={context.classes} groups={context.groups} sections={context.sections} setStudentLogins={context.setStudentLogins} />;
+            case 'classes': return <ClassManager classes={context.classes} setClasses={context.setClasses} />;
+            case 'sections': return <SectionManager sections={context.sections} setSections={context.setSections} />;
+            case 'groups': return <GroupManager groups={context.groups} setGroups={context.setGroups} />;
+            case 'subjects': return <SubjectManager subjects={context.subjects} setSubjects={context.setSubjects} classes={context.classes} groups={context.groups} />;
+            case 'result-entry': return <ResultEntryManager students={context.students} subjects={context.subjects} classes={context.classes} sections={context.sections} groups={context.groups} results={context.results} setResults={context.setResults} />;
+            case 'student-id-card': return <IDCardManager students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} idCardRequests={context.idCardRequests} setIdCardRequests={context.setIdCardRequests} />;
+            case 'staff-id-card': return <StaffIdCardManager teachers={context.teachers} staff={context.staff} />;
+            case 'settings': return <SiteSettingsManager logoUrl={context.logoUrl} setLogoUrl={context.setLogoUrl} />;
             case 'admin-settings': return <AdminSettingsManager />;
-            case 'teacher-logins': return <TeacherLoginManager teachers={props.teachers} />;
-            case 'student-logins': return <StudentLoginManager students={props.students} classes={props.classes} sections={props.sections} groups={props.groups} studentLogins={props.studentLogins} setStudentLogins={props.setStudentLogins} />;
-            case 'sms-settings': return <SmsSettingsManager students={props.students} teachers={props.teachers} classes={props.classes} sections={props.sections} groups={props.groups} studentLogins={props.studentLogins} />;
-            case 'admission-settings': return <AdmissionSettingsManager settings={props.admissionSettings} setSettings={props.setAdmissionSettings} />;
-            case 'testimonial-student': return <TestimonialStudent students={props.students} classes={props.classes} sections={props.sections} groups={props.groups} />;
-            case 'testimonial-teacher': return <TestimonialTeacher teachers={props.teachers} />;
-            case 'transfer-certificate': return <TransferCertificate students={props.students} classes={props.classes} sections={props.sections} groups={props.groups} />;
-            case 'recommendation-letter': return <RecommendationLetter students={props.students} classes={props.classes} sections={props.sections} groups={props.groups} />;
-            case 'admit-card': return <AdmitCard students={props.students} classes={props.classes} sections={props.sections} groups={props.groups} />;
+            case 'teacher-logins': return <TeacherLoginManager teachers={context.teachers} />;
+            case 'student-logins': return <StudentLoginManager students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} studentLogins={context.studentLogins} setStudentLogins={context.setStudentLogins} />;
+            case 'sms-settings': return <SmsSettingsManager students={context.students} teachers={context.teachers} classes={context.classes} sections={context.sections} groups={context.groups} studentLogins={context.studentLogins} />;
+            case 'admission-settings': return <AdmissionSettingsManager settings={context.admissionSettings} setSettings={context.setAdmissionSettings} />;
+            case 'testimonial-student': return <TestimonialStudent students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
+            case 'testimonial-teacher': return <TestimonialTeacher teachers={context.teachers} />;
+            case 'transfer-certificate': return <TransferCertificate students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
+            case 'recommendation-letter': return <RecommendationLetter students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
+            case 'admit-card': return <AdmitCard students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
+            // Fix: Add the new payment settings component to the switch case.
+            case 'payment-settings': return <PaymentSettingsManager settings={paymentSettings} setSettings={setPaymentSettings} onlineAdmissions={context.onlineAdmissions} setOnlineAdmissions={context.setOnlineAdmissions} classes={context.classes} />;
             default: return <DashboardOverview />;
         }
     };
@@ -409,6 +385,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 
                 <SidebarDropdown label="সেটিংস" isOpen={openDropdowns.includes('সেটিংস')} onClick={() => toggleDropdown('সেটিংস')}>
                     <SidebarItem icon={<IdentificationIcon />} label="শিক্ষার্থী পরিসংখ্যান" page="student-stats" activePage={activePage} setActivePage={setActivePage} setIsSidebarOpen={setIsSidebarOpen} />
+                    <SidebarItem icon={<WalletIcon />} label="পেমেন্ট গেটওয়ে" page="payment-settings" activePage={activePage} setActivePage={setActivePage} setIsSidebarOpen={setIsSidebarOpen} />
                     <SidebarItem icon={<CogIcon />} label="সাইট সেটিংস" page="settings" activePage={activePage} setActivePage={setActivePage} setIsSidebarOpen={setIsSidebarOpen} />
                     <SidebarItem icon={<SmsIcon />} label="এসএমএস সেটিংস" page="sms-settings" activePage={activePage} setActivePage={setActivePage} setIsSidebarOpen={setIsSidebarOpen} />
                     <SidebarDropdown label="ইউজার ম্যানেজমেন্ট" isOpen={openDropdowns.includes('ইউজার ম্যানেজমেন্ট')} onClick={() => toggleDropdown('ইউজার ম্যানেজমেন্ট')}>
@@ -418,7 +395,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                 </SidebarDropdown>
             </nav>
              <div className="px-2 py-4 border-t">
-                <button onClick={props.onLogout} className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                <button onClick={onLogout} className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                     <LogoutIcon />
                     <span>লগআউট</span>
                 </button>

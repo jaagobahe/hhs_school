@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import type { User, Student, Result, Subject, Class, Section, Group, IDCardRequest, Notice } from '../../types';
+import React, { useState, useMemo, useContext } from 'react';
+import type { User, Student, Notice } from '../../types';
+import { AppContext } from '../AppContext';
 
 import DashboardIcon from '../icons/DashboardIcon';
 import PersonIcon from '../icons/PersonIcon';
@@ -20,26 +21,16 @@ type StudentPage = 'overview' | 'profile' | 'results' | 'id-card';
 interface StudentDashboardProps {
     loggedInUser: User;
     onLogout: () => void;
-    students: Student[];
-    setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
-    results: Result[];
-    subjects: Subject[];
-    classes: Class[];
-    sections: Section[];
-    groups: Group[];
-    idCardRequests: IDCardRequest[];
-    setIdCardRequests: React.Dispatch<React.SetStateAction<IDCardRequest[]>>;
-    notices: Notice[];
-    onNoticeClick: (notice: Notice) => void;
 }
 
-const StudentDashboard: React.FC<StudentDashboardProps> = (props) => {
+const StudentDashboard: React.FC<StudentDashboardProps> = ({ loggedInUser, onLogout }) => {
+    const context = useContext(AppContext);
     const [activePage, setActivePage] = useState<StudentPage>('overview');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const studentData = useMemo(() => {
-        return props.students.find(s => s.studentId === props.loggedInUser.id);
-    }, [props.students, props.loggedInUser.id]);
+        return context?.students.find(s => s.studentId === loggedInUser.id);
+    }, [context?.students, loggedInUser.id]);
 
     const pageTitles: Record<StudentPage, string> = {
         overview: 'ড্যাশবোর্ড ওভারভিউ',
@@ -48,13 +39,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = (props) => {
         'id-card': 'আইডি কার্ড',
     };
 
-    if (!studentData) {
+    if (!context || !studentData) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-red-600">ত্রুটি</h2>
                     <p className="text-gray-600">আপনার শিক্ষার্থীর তথ্য খুঁজে পাওয়া যায়নি।</p>
-                    <button onClick={props.onLogout} className="mt-4 px-4 py-2 bg-brand-primary text-white rounded-md">লগআউট</button>
+                    <button onClick={onLogout} className="mt-4 px-4 py-2 bg-brand-primary text-white rounded-md">লগআউট</button>
                 </div>
             </div>
         );
@@ -63,22 +54,22 @@ const StudentDashboard: React.FC<StudentDashboardProps> = (props) => {
     const renderContent = () => {
         switch (activePage) {
             case 'overview':
-                return <StudentOverview student={studentData} notices={props.notices} onNoticeClick={props.onNoticeClick} />;
+                return <StudentOverview student={studentData} notices={context.notices} onNoticeClick={context.setSelectedNotice} />;
             case 'profile':
-                return <StudentProfileManager student={studentData} setStudents={props.setStudents} classes={props.classes} sections={props.sections} groups={props.groups}/>;
+                return <StudentProfileManager student={studentData} setStudents={context.setStudents} classes={context.classes} sections={context.sections} groups={context.groups}/>;
             case 'results':
-                return <StudentResultsViewer student={studentData} results={props.results} subjects={props.subjects} classes={props.classes} />;
+                return <StudentResultsViewer student={studentData} results={context.results} subjects={context.subjects} classes={context.classes} />;
             case 'id-card':
                 return <StudentIDCardRequest 
                             student={studentData} 
-                            idCardRequests={props.idCardRequests} 
-                            setIdCardRequests={props.setIdCardRequests}
-                            classes={props.classes}
-                            sections={props.sections}
-                            groups={props.groups}
+                            idCardRequests={context.idCardRequests} 
+                            setIdCardRequests={context.setIdCardRequests}
+                            classes={context.classes}
+                            sections={context.sections}
+                            groups={context.groups}
                         />;
             default:
-                return <StudentOverview student={studentData} notices={props.notices} onNoticeClick={props.onNoticeClick} />;
+                return <StudentOverview student={studentData} notices={context.notices} onNoticeClick={context.setSelectedNotice} />;
         }
     };
 
@@ -102,7 +93,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = (props) => {
                <SidebarItem icon={<CardIcon />} label="আইডি কার্ড" page="id-card" activePage={activePage} setActivePage={setActivePage} setIsSidebarOpen={setIsSidebarOpen} />
            </nav>
             <div className="px-2 py-4 border-t">
-               <button onClick={props.onLogout} className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+               <button onClick={onLogout} className="w-full flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                    <LogoutIcon />
                    <span>লগআউট</span>
                </button>
