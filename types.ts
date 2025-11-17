@@ -107,7 +107,6 @@ export interface OnlineAdmission {
     prevSchool?: string;
     prevClass?: string;
     prevResult?: string;
-    // Fix: Add optional payment fields used by payment-related components.
     paymentStatus?: 'pending' | 'paid' | 'failed';
     paymentGateway?: string;
     paymentTransactionId?: string;
