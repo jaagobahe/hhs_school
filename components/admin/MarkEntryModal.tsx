@@ -15,8 +15,8 @@ interface MarkEntryModalProps {
 
 // Defines the structure for mark inputs and their calculated values
 type MarkInput = {
-    cq: number;
-    mcq: number;
+    cq: string;
+    mcq: string;
     total: number;
     grade: string;
 };
@@ -39,11 +39,11 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
         const initialMarks = new Map<number, MarkInput>();
         subjects.forEach(subject => {
             const existingMark = existingResult?.marks.find(m => m.subjectId === subject.id);
-            const cq = existingMark?.cq || 0;
-            const mcq = existingMark?.mcq || 0;
-            const total = cq + mcq;
+            const cq = existingMark?.cq ?? '';
+            const mcq = existingMark?.mcq ?? '';
+            const total = (Number(cq) || 0) + (Number(mcq) || 0);
             const grade = getGradeLetter(total);
-            initialMarks.set(subject.id, { cq, mcq, total, grade });
+            initialMarks.set(subject.id, { cq: String(cq), mcq: String(mcq), total, grade });
         });
         setMarks(initialMarks);
     }, [existingResult, subjects]);
@@ -75,7 +75,7 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
     }, [errors]);
 
     // Validates the marks for a single subject and updates the error state.
-    const validateMark = (subjectId: number, mark: MarkInput) => {
+    const validateMark = (subjectId: number, mark: { cq: number, mcq: number }) => {
         const newErrors = new Map(errors);
         const subjectErrors: MarkError = {};
         
@@ -96,27 +96,30 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
 
     // Handles changes in mark input fields, updates state, and triggers validation.
     const handleMarkChange = (subjectId: number, field: 'cq' | 'mcq', value: string) => {
-        const numValue = value === '' ? 0 : parseInt(value, 10);
-        
-        if (isNaN(numValue)) return; // Ignore non-numeric input
+        // only allow numbers
+        if (value && !/^\d*$/.test(value)) return;
     
         const newMarks = new Map(marks);
-        const currentMark = newMarks.get(subjectId) || { cq: 0, mcq: 0, total: 0, grade: 'F' };
+        const currentMark: MarkInput = newMarks.get(subjectId) || { cq: '', mcq: '', total: 0, grade: 'F' };
         
-        // Create a new object to avoid state mutation. This explicit approach is more robust.
+        // Create a new object to avoid state mutation.
         const nextMark: MarkInput = {
-            cq: field === 'cq' ? numValue : currentMark.cq,
-            mcq: field === 'mcq' ? numValue : currentMark.mcq,
+            cq: field === 'cq' ? value : currentMark.cq,
+            mcq: field === 'mcq' ? value : currentMark.mcq,
             total: 0, // will be recalculated
             grade: 'F', // will be recalculated
         };
-        nextMark.total = nextMark.cq + nextMark.mcq;
+
+        const cqNum = parseInt(nextMark.cq, 10) || 0;
+        const mcqNum = parseInt(nextMark.mcq, 10) || 0;
+
+        nextMark.total = cqNum + mcqNum;
         nextMark.grade = getGradeLetter(nextMark.total);
     
         newMarks.set(subjectId, nextMark);
         setMarks(newMarks);
         
-        validateMark(subjectId, nextMark);
+        validateMark(subjectId, { cq: cqNum, mcq: mcqNum });
     };
 
 
@@ -124,23 +127,29 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
     const handleSubmit = () => {
         // Run validation for all fields one last time
         let isValid = true;
+        const newErrors = new Map<number, MarkError>();
         marks.forEach((mark, subjectId) => {
             const subjectErrors: MarkError = {};
-            if (mark.cq < 0 || mark.cq > 70) { subjectErrors.cq = '0-70'; isValid = false; }
-            if (mark.mcq < 0 || mark.mcq > 30) { subjectErrors.mcq = '0-30'; isValid = false; }
-            if(!isValid) errors.set(subjectId, subjectErrors);
+            const cqNum = parseInt(mark.cq, 10) || 0;
+            const mcqNum = parseInt(mark.mcq, 10) || 0;
+
+            if (cqNum < 0 || cqNum > 70) { subjectErrors.cq = '0-70 এর মধ্যে হতে হবে'; isValid = false; }
+            if (mcqNum < 0 || mcqNum > 30) { subjectErrors.mcq = '0-30 এর মধ্যে হতে হবে'; isValid = false; }
+            if (Object.keys(subjectErrors).length > 0) {
+                newErrors.set(subjectId, subjectErrors);
+            }
         });
 
         if (!isValid) {
-            setErrors(new Map(errors));
+            setErrors(newErrors);
             return;
         }
+        setErrors(new Map());
 
-        // FIX: Explicitly type `mark` to `MarkInput` to resolve type inference issue. The `mark` parameter was being inferred as `unknown`.
-        const marksArray: Mark[] = Array.from(marks.entries()).map(([subjectId, mark]: [number, MarkInput]) => ({
+        const marksArray: Mark[] = Array.from(marks.entries()).map(([subjectId, mark]) => ({
             subjectId,
-            cq: mark.cq,
-            mcq: mark.mcq,
+            cq: parseInt(mark.cq, 10) || 0,
+            mcq: parseInt(mark.mcq, 10) || 0,
         }));
 
         const resultData: Result = {
@@ -177,7 +186,7 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200 font-tiro-bangla">
                         {subjects.map(subject => {
-                            const mark = marks.get(subject.id) || { cq: 0, mcq: 0, total: 0, grade: 'F' };
+                            const mark = marks.get(subject.id) || { cq: '', mcq: '', total: 0, grade: 'F' };
                             const error = errors.get(subject.id) || {};
                             return (
                                 <tr key={subject.id}>
@@ -199,10 +208,10 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
                                         />
                                     </td>
                                     <td className="px-4 py-2 text-center font-semibold text-lg">
-                                        {mark.total.toLocaleString('bn-BD')}
+                                        {mark.total > 0 || (mark.cq === '0' && mark.mcq === '0') ? mark.total.toLocaleString('bn-BD') : ''}
                                     </td>
                                     <td className="px-4 py-2 text-center font-semibold text-lg font-sans">
-                                        {mark.grade}
+                                        {mark.total > 0 || (mark.cq === '0' && mark.mcq === '0') ? mark.grade : ''}
                                     </td>
                                 </tr>
                             );
@@ -237,7 +246,7 @@ const MarkEntryModal: React.FC<MarkEntryModalProps> = ({ student, subjects, exam
 
 // A sub-component for the mark input field to handle styling and error display.
 const MarkInputComponent: React.FC<{
-    value: number;
+    value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     error?: string;
     max: number;
@@ -245,7 +254,7 @@ const MarkInputComponent: React.FC<{
     <div className="relative flex flex-col items-center">
         <input
             type="number"
-            value={value === 0 ? '' : value}
+            value={value}
             onChange={onChange}
             min="0"
             max={max}

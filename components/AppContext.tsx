@@ -1,7 +1,7 @@
 import React from 'react';
 import type { 
     Notice, GalleryImage, AdhocCommitteeMember, Teacher, StaffMember, StudentStat, SscResult, 
-    OnlineAdmission, Student, Class, Group, Section, Subject, Result, StudentLogin, IDCardRequest, AdmissionSettings
+    OnlineAdmission, Student, Class, Group, Section, Subject, Result, StudentLogin, IDCardRequest, AdmissionSettings, PaymentSettings
 } from '../types';
 
 export interface AppContextType {
@@ -26,6 +26,7 @@ export interface AppContextType {
     studentLogins: StudentLogin[];
     idCardRequests: IDCardRequest[];
     admissionSettings: AdmissionSettings;
+    paymentSettings: PaymentSettings;
     logoUrl: string;
     
     // Setters
@@ -49,6 +50,7 @@ export interface AppContextType {
     setStudentLogins: React.Dispatch<React.SetStateAction<StudentLogin[]>>;
     setIdCardRequests: React.Dispatch<React.SetStateAction<IDCardRequest[]>>;
     setAdmissionSettings: React.Dispatch<React.SetStateAction<AdmissionSettings>>;
+    setPaymentSettings: React.Dispatch<React.SetStateAction<PaymentSettings>>;
     setLogoUrl: React.Dispatch<React.SetStateAction<string>>;
     setSelectedNotice: React.Dispatch<React.SetStateAction<Notice | null>>;
 }

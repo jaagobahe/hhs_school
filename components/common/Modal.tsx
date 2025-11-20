@@ -1,10 +1,11 @@
+
 import React from 'react';
 import XIcon from '../icons/XIcon';
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
-    title: string;
+    title: React.ReactNode;
     children: React.ReactNode;
     size?: 'md' | 'lg';
 }

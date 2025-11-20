@@ -1,10 +1,10 @@
+
 import React from 'react';
 import type { StudentStat } from '../../types';
 
 interface StatisticsTableProps {
     title: string;
     headers: string[];
-    // FIX: Change data type to StudentStat[] to match the passed props.
     data: StudentStat[];
     headerColor: string;
 }

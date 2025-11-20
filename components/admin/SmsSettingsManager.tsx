@@ -5,6 +5,25 @@ type RecipientType = 'student' | 'teacher' | 'specific';
 type TemplateType = 'admission' | 'password' | 'notice' | 'custom';
 type GatewayProvider = 'custom' | 'twilio';
 
+// Helper for safe localStorage access
+const getSafeLocalStorage = (key: string, defaultValue: string) => {
+    try {
+        return localStorage.getItem(key) || defaultValue;
+    } catch (e) {
+        console.warn(`Failed to access localStorage for key ${key}`, e);
+        return defaultValue;
+    }
+};
+
+const setSafeLocalStorage = (key: string, value: string) => {
+    try {
+        localStorage.setItem(key, value);
+    } catch (e) {
+        console.warn(`Failed to set localStorage for key ${key}`, e);
+    }
+};
+
+
 // --- API Simulation & Implementation ---
 /**
  * একটি বাস্তব SMS API কলের অনুকরণ করে (কাস্টম গেটওয়ের জন্য) অথবা Twilio API কল করে।
@@ -111,16 +130,16 @@ const SmsSettingsManager: React.FC<{
     const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // --- Gateway Settings State ---
-    const [gatewayProvider, setGatewayProvider] = useState<GatewayProvider>(() => (localStorage.getItem('smsGatewayProvider') as GatewayProvider) || 'twilio');
+    // --- Gateway Settings State with Safe Local Storage ---
+    const [gatewayProvider, setGatewayProvider] = useState<GatewayProvider>(() => (getSafeLocalStorage('smsGatewayProvider', 'twilio') as GatewayProvider));
     // Custom Gateway States
-    const [apiKey, setApiKey] = useState(() => localStorage.getItem('smsApiKey') || '');
-    const [senderId, setSenderId] = useState(() => localStorage.getItem('smsSenderId') || '');
-    const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('smsApiUrl') || '');
+    const [apiKey, setApiKey] = useState(() => getSafeLocalStorage('smsApiKey', ''));
+    const [senderId, setSenderId] = useState(() => getSafeLocalStorage('smsSenderId', ''));
+    const [apiUrl, setApiUrl] = useState(() => getSafeLocalStorage('smsApiUrl', ''));
     // Twilio States with pre-filled values
-    const [twilioAccountSid, setTwilioAccountSid] = useState(() => localStorage.getItem('twilioAccountSid') || 'AC53602326d13292ceb710b305bdabb458');
-    const [twilioAuthToken, setTwilioAuthToken] = useState(() => localStorage.getItem('twilioAuthToken') || '0a6ee90459a40bdc594d56e598cbdba7');
-    const [twilioPhoneNumber, setTwilioPhoneNumber] = useState(() => localStorage.getItem('twilioPhoneNumber') || '+18782511088');
+    const [twilioAccountSid, setTwilioAccountSid] = useState(() => getSafeLocalStorage('twilioAccountSid', 'AC53602326d13292ceb710b305bdabb458'));
+    const [twilioAuthToken, setTwilioAuthToken] = useState(() => getSafeLocalStorage('twilioAuthToken', '0a6ee90459a40bdc594d56e598cbdba7'));
+    const [twilioPhoneNumber, setTwilioPhoneNumber] = useState(() => getSafeLocalStorage('twilioPhoneNumber', '+18782511088'));
 
 
     const classMap = useMemo(() => new Map(classes.map(c => [c.id, c])), [classes]);
@@ -245,15 +264,15 @@ const SmsSettingsManager: React.FC<{
     const handleSaveSettings = (e: React.FormEvent) => {
         e.preventDefault();
         setStatusMessage(null);
-        localStorage.setItem('smsGatewayProvider', gatewayProvider);
+        setSafeLocalStorage('smsGatewayProvider', gatewayProvider);
         if (gatewayProvider === 'twilio') {
-            localStorage.setItem('twilioAccountSid', twilioAccountSid);
-            localStorage.setItem('twilioAuthToken', twilioAuthToken);
-            localStorage.setItem('twilioPhoneNumber', twilioPhoneNumber);
+            setSafeLocalStorage('twilioAccountSid', twilioAccountSid);
+            setSafeLocalStorage('twilioAuthToken', twilioAuthToken);
+            setSafeLocalStorage('twilioPhoneNumber', twilioPhoneNumber);
         } else {
-            localStorage.setItem('smsApiKey', apiKey);
-            localStorage.setItem('smsSenderId', senderId);
-            localStorage.setItem('smsApiUrl', apiUrl);
+            setSafeLocalStorage('smsApiKey', apiKey);
+            setSafeLocalStorage('smsSenderId', senderId);
+            setSafeLocalStorage('smsApiUrl', apiUrl);
         }
         setStatusMessage({ type: 'success', text: 'গেটওয়ে সেটিংস সফলভাবে ব্রাউজারে সংরক্ষণ করা হয়েছে।' });
     };

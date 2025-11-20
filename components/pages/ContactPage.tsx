@@ -1,11 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MailIcon from '../icons/MailIcon';
+import SuccessModal from '../common/SuccessModal';
 
 const ContactPage: React.FC = () => {
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        alert('আপনার বার্তাটি পাঠানোর কার্যকারিতা শীঘ্রই যুক্ত করা হবে।');
+        // Simulate API call
+        setTimeout(() => {
+            setShowSuccess(true);
+            setFormData({ name: '', email: '', subject: '', message: '' });
+        }, 500);
     };
 
     return (
@@ -47,19 +64,51 @@ const ContactPage: React.FC = () => {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">আপনার নাম</label>
-                                <input type="text" id="name" name="name" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary" />
+                                <input 
+                                    type="text" 
+                                    id="name" 
+                                    name="name" 
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required 
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary" 
+                                />
                             </div>
                              <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">আপনার ইমেইল</label>
-                                <input type="email" id="email" name="email" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary" />
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required 
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary" 
+                                />
                             </div>
                              <div>
                                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700">বিষয়</label>
-                                <input type="text" id="subject" name="subject" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary" />
+                                <input 
+                                    type="text" 
+                                    id="subject" 
+                                    name="subject" 
+                                    value={formData.subject}
+                                    onChange={handleChange}
+                                    required 
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary" 
+                                />
                             </div>
                              <div>
                                 <label htmlFor="message" className="block text-sm font-medium text-gray-700">আপনার বার্তা</label>
-                                <textarea id="message" name="message" rows={4} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary"></textarea>
+                                <textarea 
+                                    id="message" 
+                                    name="message" 
+                                    rows={4} 
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    required 
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-secondary focus:border-brand-secondary"
+                                ></textarea>
                             </div>
                             <div className="text-left">
                                 <button type="submit" className="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors">
@@ -69,6 +118,13 @@ const ContactPage: React.FC = () => {
                         </form>
                     </div>
                 </div>
+
+                <SuccessModal 
+                    isOpen={showSuccess} 
+                    onClose={() => setShowSuccess(false)} 
+                    title="বার্তা পাঠানো হয়েছে" 
+                    message="ধন্যবাদ! আপনার বার্তাটি সফলভাবে আমাদের কাছে পৌঁছেছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।" 
+                />
             </div>
         </div>
     );

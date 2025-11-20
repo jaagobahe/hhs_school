@@ -42,9 +42,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ role, onLoginSuccess, logoUrl, st
                 return;
             }
 
-            // Fix: The mock data uses the student ID as the default password.
-            // This logic should be updated if the password system changes.
-            if (loginInfo.studentId === password) {
+            if (loginInfo.password === password) {
                 if (!loginInfo.isActive) {
                     setError('আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।');
                     return;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { GalleryImage } from '../types';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
@@ -10,26 +10,29 @@ interface ImageSliderProps {
 const ImageSlider: React.FC<ImageSliderProps> = ({ slides }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const goToPrevious = () => {
-        const isFirstSlide = currentIndex === 0;
-        const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
-        setCurrentIndex(newIndex);
-    };
+    const goToPrevious = useCallback(() => {
+        setCurrentIndex((prevIndex) => {
+            const isFirstSlide = prevIndex === 0;
+            return isFirstSlide ? slides.length - 1 : prevIndex - 1;
+        });
+    }, [slides.length]);
 
-    const goToNext = () => {
-        const isLastSlide = currentIndex === slides.length - 1;
-        const newIndex = isLastSlide ? 0 : currentIndex + 1;
-        setCurrentIndex(newIndex);
-    };
+    const goToNext = useCallback(() => {
+        setCurrentIndex((prevIndex) => {
+            const isLastSlide = prevIndex === slides.length - 1;
+            return isLastSlide ? 0 : prevIndex + 1;
+        });
+    }, [slides.length]);
 
     const goToSlide = (slideIndex: number) => {
         setCurrentIndex(slideIndex);
     };
 
     useEffect(() => {
+        if (slides.length < 2) return;
         const timer = setTimeout(goToNext, 3000); // প্রতি 3 সেকেন্ড পর স্লাইড পরিবর্তন হবে
         return () => clearTimeout(timer);
-    }, [currentIndex]);
+    }, [currentIndex, goToNext, slides.length]);
 
 
     return (

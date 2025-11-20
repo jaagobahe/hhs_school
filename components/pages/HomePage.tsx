@@ -70,11 +70,11 @@ const departments = [
 ];
 
 const StatsCard: React.FC<{ icon: React.ReactNode; label: string; value: string; }> = ({ icon, label, value }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4 transform hover:-translate-y-2 transition-transform duration-300">
-        <div className="text-3xl text-brand-primary">{icon}</div>
+    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4 transform hover:-translate-y-2 transition-all duration-300 hover:shadow-xl border-l-4 border-brand-primary">
+        <div className="text-3xl text-brand-secondary">{icon}</div>
         <div>
             <p className="text-2xl font-bold text-gray-800 font-tiro-bangla">{value}</p>
-            <p className="text-gray-600">{label}</p>
+            <p className="text-gray-600 text-sm">{label}</p>
         </div>
     </div>
 );
@@ -83,7 +83,7 @@ const QuickLinkItem: React.FC<{ icon: React.ReactNode; label: string; page: Page
     <a
         href="#"
         onClick={(e) => { e.preventDefault(); onNavigate(page); }}
-        className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-brand-secondary hover:text-white transition-colors group"
+        className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-brand-secondary hover:text-white transition-colors group shadow-sm"
     >
         <div className="text-brand-primary group-hover:text-white">{icon}</div>
         <span className="ml-4 font-medium">{label}</span>
@@ -157,7 +157,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate, onTeacherDetailsClick, 
                                 ))}
                             </div>
                             
-                            <h3 className="text-2xl font-semibold text-brand-primary border-b-2 border-brand-accent pb-2 mt-10 mb-6">আমাদের রয়েছে</h3>
+                            <h3 className="text-2xl font-semibold text-brand-primary border-b-2 border-brand-accent pb-2 mt-10 mb-6">আমাদের বিভাগসমূহ</h3>
                             <div className="grid grid-cols-2 gap-8 max-w-3xl mx-auto">
                                 {departments.map((dept, index) => (
                                     <FeatureCard

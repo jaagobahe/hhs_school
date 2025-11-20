@@ -62,10 +62,8 @@ const MyStudents: React.FC<MyStudentsProps> = ({ teacher, students, classes, sec
 
     const handleMarkChange = (studentId: string, field: 'cq' | 'mcq', value: string) => {
         const newMarks = new Map(marks);
-        // FIX: Provide a correct default object with both cq and mcq properties to resolve type issue when a student has no marks yet.
-        const currentMarks = newMarks.get(studentId) || { cq: '', mcq: '' };
+        const currentMarks: { cq: string, mcq: string } = newMarks.get(studentId) || { cq: '', mcq: '' };
         
-        // Explicitly create a new object to prevent potential spread operator type issues.
         const newMark = {
             cq: field === 'cq' ? value : currentMarks.cq,
             mcq: field === 'mcq' ? value : currentMarks.mcq,

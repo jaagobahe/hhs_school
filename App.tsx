@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Page, LoginRole, User, Notice, Teacher, GalleryImage, AdhocCommitteeMember, Class, OnlineAdmission, StudentStat, StaffMember, SscResult, Student, Group, Section, Subject, Result, StudentLogin, IDCardRequest, AdmissionSettings } from './types';
+import type { Page, LoginRole, User, Notice, Teacher, GalleryImage, AdhocCommitteeMember, Class, OnlineAdmission, StudentStat, StaffMember, SscResult, Student, Group, Section, Subject, Result, StudentLogin, IDCardRequest, AdmissionSettings, PaymentSettings } from './types';
 import TopBar from './components/TopBar';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -22,14 +22,15 @@ import StaffPage from './components/pages/StaffPage';
 import NoticesPage from './components/pages/NoticesPage';
 import StudentDashboardPage from './components/student/StudentDashboardPage';
 import TeacherDashboardPage from './components/teacher/TeacherDashboardPage';
-import { 
-    mockNotices, mockTeachers, mockGalleryImages, mockSliderImages, 
-    mockAdhocCommitteeMembers, mockClasses, mockStaff, mockSscResults,
-    mockGenderData, mockIslamData, mockHinduData, mockOnlineAdmissions,
-    mockStudents, mockGroups, mockSections, mockSubjects, mockResults,
-    mockStudentLogins, mockIdCardRequests, mockAdmissionSettings
-} from './data';
 import { AppContext, AppContextType } from './components/AppContext';
+import { 
+    initialNotices, initialTeachers, initialGalleryImages, initialSliderImages, 
+    initialAdhocCommitteeMembers, initialClasses, initialStaff, initialSscResults,
+    initialGenderData, initialIslamData, initialHinduData, initialOnlineAdmissions,
+    initialStudents, initialGroups, initialSections, initialSubjects, initialResults,
+    initialStudentLogins, initialIdCardRequests, initialAdmissionSettings, initialPaymentSettings
+} from './data';
+
 
 const App: React.FC = () => {
     // State for page navigation
@@ -45,57 +46,30 @@ const App: React.FC = () => {
 
     // Site settings state
     const [logoUrl, setLogoUrl] = useState('https://picsum.photos/seed/schoollogo/60/60');
-    const [loading, setLoading] = useState(true);
 
-    // Application data states
-    const [notices, setNotices] = useState<Notice[]>([]);
-    const [teachers, setTeachers] = useState<Teacher[]>([]);
-    const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-    const [sliderImages, setSliderImages] = useState<GalleryImage[]>([]);
-    const [adhocCommitteeMembers, setAdhocCommitteeMembers] = useState<AdhocCommitteeMember[]>([]);
-    const [classes, setClasses] = useState<Class[]>([]);
-    const [staff, setStaff] = useState<StaffMember[]>([]);
-    const [sscResults, setSscResults] = useState<SscResult[]>([]);
-    const [genderData, setGenderData] = useState<StudentStat[]>([]);
-    const [islamData, setIslamData] = useState<StudentStat[]>([]);
-    const [hinduData, setHinduData] = useState<StudentStat[]>([]);
-    const [onlineAdmissions, setOnlineAdmissions] = useState<OnlineAdmission[]>([]);
-    const [students, setStudents] = useState<Student[]>([]);
-    const [groups, setGroups] = useState<Group[]>([]);
-    const [sections, setSections] = useState<Section[]>([]);
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [results, setResults] = useState<Result[]>([]);
-    const [studentLogins, setStudentLogins] = useState<StudentLogin[]>([]);
-    const [idCardRequests, setIdCardRequests] = useState<IDCardRequest[]>([]);
-    const [admissionSettings, setAdmissionSettings] = useState<AdmissionSettings>(mockAdmissionSettings);
+    // Application data states initialized with mock data
+    const [notices, setNotices] = useState<Notice[]>(initialNotices);
+    const [teachers, setTeachers] = useState<Teacher[]>(initialTeachers);
+    const [galleryImages, setGalleryImages] = useState<GalleryImage[]>(initialGalleryImages);
+    const [sliderImages, setSliderImages] = useState<GalleryImage[]>(initialSliderImages);
+    const [adhocCommitteeMembers, setAdhocCommitteeMembers] = useState<AdhocCommitteeMember[]>(initialAdhocCommitteeMembers);
+    const [classes, setClasses] = useState<Class[]>(initialClasses);
+    const [staff, setStaff] = useState<StaffMember[]>(initialStaff);
+    const [sscResults, setSscResults] = useState<SscResult[]>(initialSscResults);
+    const [genderData, setGenderData] = useState<StudentStat[]>(initialGenderData);
+    const [islamData, setIslamData] = useState<StudentStat[]>(initialIslamData);
+    const [hinduData, setHinduData] = useState<StudentStat[]>(initialHinduData);
+    const [onlineAdmissions, setOnlineAdmissions] = useState<OnlineAdmission[]>(initialOnlineAdmissions);
+    const [students, setStudents] = useState<Student[]>(initialStudents);
+    const [groups, setGroups] = useState<Group[]>(initialGroups);
+    const [sections, setSections] = useState<Section[]>(initialSections);
+    const [subjects, setSubjects] = useState<Subject[]>(initialSubjects);
+    const [results, setResults] = useState<Result[]>(initialResults);
+    const [studentLogins, setStudentLogins] = useState<StudentLogin[]>(initialStudentLogins);
+    const [idCardRequests, setIdCardRequests] = useState<IDCardRequest[]>(initialIdCardRequests);
+    const [admissionSettings, setAdmissionSettings] = useState<AdmissionSettings>(initialAdmissionSettings);
+    const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(initialPaymentSettings);
 
-
-    // Fetch initial data from mock data file
-    useEffect(() => {
-        setLoading(true);
-        // Load mock data
-        setNotices(mockNotices);
-        setTeachers(mockTeachers);
-        setGalleryImages(mockGalleryImages);
-        setSliderImages(mockSliderImages);
-        setAdhocCommitteeMembers(mockAdhocCommitteeMembers);
-        setClasses(mockClasses);
-        setStaff(mockStaff);
-        setSscResults(mockSscResults);
-        setGenderData(mockGenderData);
-        setIslamData(mockIslamData);
-        setHinduData(mockHinduData);
-        setOnlineAdmissions(mockOnlineAdmissions);
-        setStudents(mockStudents);
-        setGroups(mockGroups);
-        setSections(mockSections);
-        setSubjects(mockSubjects);
-        setResults(mockResults);
-        setStudentLogins(mockStudentLogins);
-        setIdCardRequests(mockIdCardRequests);
-        setAdmissionSettings(mockAdmissionSettings);
-        setLoading(false);
-    }, []);
 
     // Scroll to top on page change
     useEffect(() => {
@@ -146,6 +120,7 @@ const App: React.FC = () => {
         studentLogins, setStudentLogins,
         idCardRequests, setIdCardRequests,
         admissionSettings, setAdmissionSettings,
+        paymentSettings, setPaymentSettings,
         logoUrl, setLogoUrl,
         setSelectedNotice
     };
@@ -167,7 +142,7 @@ const App: React.FC = () => {
             case 'notices':
                 return <NoticesPage notices={notices} onNoticeClick={setSelectedNotice} />;
             case 'admission':
-                return <AdmissionPage classes={classes} setOnlineAdmissions={setOnlineAdmissions} admissionSettings={admissionSettings} />;
+                return <AdmissionPage classes={classes} setOnlineAdmissions={setOnlineAdmissions} admissionSettings={admissionSettings} paymentSettings={paymentSettings} />;
             case 'results':
                 return <ResultsPage sscResults={sscResults} results={results} students={students} subjects={subjects} classes={classes} />;
             case 'gallery':
@@ -182,10 +157,6 @@ const App: React.FC = () => {
                 return <HomePage onNavigate={setCurrentPage} onTeacherDetailsClick={setSelectedTeacher} notices={notices} teachers={teachers} sliderImages={sliderImages}/>;
         }
     };
-
-    if (loading) {
-        return <div className="flex justify-center items-center h-screen bg-gray-100 text-gray-700">ডেটা লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।</div>;
-    }
 
     if (currentPage === 'dashboard' && loggedInUser?.role === 'admin') {
         return (

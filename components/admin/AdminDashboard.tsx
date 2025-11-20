@@ -221,11 +221,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [openDropdowns, setOpenDropdowns] = useState<string[]>([]);
     
-    // Fix: Add initial state for payment settings from context if available, or a default structure.
-    const [paymentSettings, setPaymentSettings] = useState(context?.paymentSettings || {
-        admissionFee: 250,
-        bKash: { enabled: true, sandboxMode: true, merchantNumber: "017xxxxxxxx", username: null, appKey: null, appSecret: null, password: null }
-    });
 
     if (!context) {
         return <div className="flex justify-center items-center h-screen">Loading context...</div>;
@@ -323,8 +318,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             case 'transfer-certificate': return <TransferCertificate students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
             case 'recommendation-letter': return <RecommendationLetter students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
             case 'admit-card': return <AdmitCard students={context.students} classes={context.classes} sections={context.sections} groups={context.groups} />;
-            // Fix: Add the new payment settings component to the switch case.
-            case 'payment-settings': return <PaymentSettingsManager settings={paymentSettings} setSettings={setPaymentSettings} onlineAdmissions={context.onlineAdmissions} setOnlineAdmissions={context.setOnlineAdmissions} classes={context.classes} />;
+            case 'payment-settings': return <PaymentSettingsManager settings={context.paymentSettings} setSettings={context.setPaymentSettings} onlineAdmissions={context.onlineAdmissions} setOnlineAdmissions={context.setOnlineAdmissions} classes={context.classes} />;
             default: return <DashboardOverview />;
         }
     };

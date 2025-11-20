@@ -203,7 +203,6 @@ export interface IDCardRequest {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-// Fix: Add missing PaymentSettings type.
 export interface PaymentSettings {
   admissionFee: number;
   bKash: {

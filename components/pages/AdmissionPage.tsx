@@ -1,9 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import type { Class, OnlineAdmission, AdmissionSettings } from '../../types';
+import type { Class, OnlineAdmission, AdmissionSettings, PaymentSettings } from '../../types';
 import IdentificationIcon from '../icons/IdentificationIcon';
 import CalendarIcon from '../icons/CalendarIcon';
 import PhoneIcon from '../icons/PhoneIcon';
 import AcademicCapIcon from '../icons/AcademicCapIcon';
+import PaymentChoiceModal from '../common/PaymentChoiceModal';
+import PaymentModal from '../common/PaymentModal';
+import SuccessModal from '../common/SuccessModal';
 
 // Helper Components
 const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -70,6 +73,7 @@ interface AdmissionPageProps {
     classes: Class[];
     setOnlineAdmissions: React.Dispatch<React.SetStateAction<OnlineAdmission[]>>;
     admissionSettings: AdmissionSettings;
+    paymentSettings: PaymentSettings;
 }
 
 const initialFormData: Omit<OnlineAdmission, 'id' | 'status' | 'studentPhotoUrl'> = {
@@ -81,8 +85,12 @@ const initialFormData: Omit<OnlineAdmission, 'id' | 'status' | 'studentPhotoUrl'
     prevSchool: '', prevClass: '', prevResult: ''
 };
 
-const AdmissionPage: React.FC<AdmissionPageProps> = ({ classes, setOnlineAdmissions, admissionSettings }) => {
+const AdmissionPage: React.FC<AdmissionPageProps> = ({ classes, setOnlineAdmissions, admissionSettings, paymentSettings }) => {
     const [formData, setFormData] = useState(initialFormData);
+    const [showPaymentChoice, setShowPaymentChoice] = useState(false);
+    const [showOnlinePayment, setShowOnlinePayment] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
     const isFormAvailable = useMemo(() => {
         if (!admissionSettings.formEnabled) {
@@ -107,10 +115,8 @@ const AdmissionPage: React.FC<AdmissionPageProps> = ({ classes, setOnlineAdmissi
             [name]: name === 'admissionClassId' ? Number(value) : value
         }));
     };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
+    
+    const finalizeAdmission = (paymentDetails?: { transactionId: string; gateway: string; }) => {
         const newAdmission: OnlineAdmission = {
             id: Date.now(),
             status: 'pending',
@@ -118,11 +124,39 @@ const AdmissionPage: React.FC<AdmissionPageProps> = ({ classes, setOnlineAdmissi
             prevSchool: formData.prevSchool || undefined,
             prevClass: formData.prevClass || undefined,
             prevResult: formData.prevResult || undefined,
+            paymentStatus: paymentDetails ? 'paid' : 'pending',
+            paymentGateway: paymentDetails?.gateway,
+            paymentTransactionId: paymentDetails?.transactionId,
+            paymentAmount: paymentDetails ? paymentSettings.admissionFee : undefined,
+            paymentDate: paymentDetails ? new Date().toISOString() : undefined,
         };
         
         setOnlineAdmissions(prev => [newAdmission, ...prev]);
-        alert('আপনার ভর্তি আবেদন সফলভাবে জমা হয়েছে। বিদ্যালয় কর্তৃপক্ষ শীঘ্রই আপনার সাথে যোগাযোগ করবে।');
         setFormData(initialFormData); // Reset form
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setShowPaymentChoice(true);
+    };
+
+    const handlePayOnline = () => {
+        setShowPaymentChoice(false);
+        setShowOnlinePayment(true);
+    };
+
+    const handlePayOffline = () => {
+        setShowPaymentChoice(false);
+        finalizeAdmission();
+        setSuccessMessage('আপনার আবেদনটি সফলভাবে জমা হয়েছে। অনুগ্রহ করে বিদ্যালয় অফিসে এসে ভর্তি ফি পরিশোধ করুন।');
+        setShowSuccess(true);
+    };
+    
+    const handlePaymentSuccess = (transactionId: string, gateway: string) => {
+        setShowOnlinePayment(false);
+        finalizeAdmission({ transactionId, gateway });
+        setSuccessMessage('আপনার পেমেন্ট সফল হয়েছে এবং আবেদনটি চূড়ান্তভাবে জমা হয়েছে।');
+        setShowSuccess(true);
     };
 
     return (
@@ -251,6 +285,35 @@ const AdmissionPage: React.FC<AdmissionPageProps> = ({ classes, setOnlineAdmissi
                             {admissionSettings.unavailableMessage}
                         </p>
                     </div>
+                )}
+                
+                {showPaymentChoice && (
+                    <PaymentChoiceModal
+                        isOpen={showPaymentChoice}
+                        onClose={() => setShowPaymentChoice(false)}
+                        onPayOnline={handlePayOnline}
+                        onPayOffline={handlePayOffline}
+                        amount={paymentSettings.admissionFee}
+                    />
+                )}
+                
+                {showOnlinePayment && (
+                    <PaymentModal
+                        isOpen={showOnlinePayment}
+                        onClose={() => setShowOnlinePayment(false)}
+                        onPaymentSuccess={handlePaymentSuccess}
+                        amount={paymentSettings.admissionFee}
+                        paymentSettings={paymentSettings}
+                    />
+                )}
+
+                {showSuccess && (
+                    <SuccessModal
+                        isOpen={showSuccess}
+                        onClose={() => setShowSuccess(false)}
+                        title="আবেদন সফল"
+                        message={successMessage}
+                    />
                 )}
             </div>
         </div>
